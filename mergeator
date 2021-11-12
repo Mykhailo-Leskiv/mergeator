@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+
+PR_LIST_CMD = "gh pr list"
+GET_CURRENT_BRANCH_CMD = "git rev-parse --abbrev-ref HEAD"
+BOLD_FONT = "\033[1m"
+NORMAL_FONT = "\033[0m"
+MASTER_BRANCH = "master"
+
+
+def diff(br):
+    return "git diff --name-only %s $(git merge-base %s %s)" % (
+        br, br, MASTER_BRANCH
+    )
+
+
+def run_command(cmd):
+    return subprocess.check_output(cmd, shell=True)
+
+
+try:
+    master_branch = sys.argv[1]
+except IndexError:
+    master_branch = MASTER_BRANCH
+print(master_branch)
+pr_statuses = run_command(PR_LIST_CMD).decode("utf-8").split("\n")
+branches = [run_command(GET_CURRENT_BRANCH_CMD).decode("utf-8").strip()]
+# get branch names from pr_statuses and append then to branches list
+for status in pr_statuses[:-1]:
+    branches.append(status.split("\t")[2])
+
+files = {}
+for branch in branches:
+    r = run_command(diff(branch))
+    changes = r.decode("utf-8").strip().split("\n")
+    for file in changes:
+        files[file] = files.get(file, []) + [branch]
+
+for k, v in files.items():
+    if len(v) > 1:
+        print(
+            BOLD_FONT
+            + ", ".join(v)
+            + NORMAL_FONT
+            + " branches have changes in file(s) "
+            + BOLD_FONT
+            + k
+        )
