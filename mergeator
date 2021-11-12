@@ -2,7 +2,7 @@
 import subprocess
 import sys
 
-PR_LIST_CMD = "gh pr list"
+PR_LIST_CMD = "gh pr list --base %s"
 GET_CURRENT_BRANCH_CMD = "git rev-parse --abbrev-ref HEAD"
 BOLD_FONT = "\033[1m"
 NORMAL_FONT = "\033[0m"
@@ -11,7 +11,9 @@ MASTER_BRANCH = "master"
 
 def diff(br):
     return "git diff --name-only %s $(git merge-base %s %s)" % (
-        br, br, MASTER_BRANCH
+        br,
+        br,
+        MASTER_BRANCH,
     )
 
 
@@ -23,7 +25,9 @@ try:
     master_branch = sys.argv[1]
 except IndexError:
     master_branch = MASTER_BRANCH
-pr_statuses = run_command(PR_LIST_CMD).decode("utf-8").split("\n")
+pr_statuses = (
+    run_command(PR_LIST_CMD % master_branch).decode("utf-8").split("\n")
+)
 branches = [run_command(GET_CURRENT_BRANCH_CMD).decode("utf-8").strip()]
 # get branch names from pr_statuses and append then to branches list
 for status in pr_statuses[:-1]:
