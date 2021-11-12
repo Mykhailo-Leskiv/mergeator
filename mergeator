@@ -23,7 +23,6 @@ try:
     master_branch = sys.argv[1]
 except IndexError:
     master_branch = MASTER_BRANCH
-print(master_branch)
 pr_statuses = run_command(PR_LIST_CMD).decode("utf-8").split("\n")
 branches = [run_command(GET_CURRENT_BRANCH_CMD).decode("utf-8").strip()]
 # get branch names from pr_statuses and append then to branches list
